@@ -1,1 +1,1 @@
-docker push bwajtr/vaadin-spring-boot-optimized-docker-layers-demo:latest
+docker push [your github username here]/vaadin-spring-boot-layered-docker-image-demo:latest

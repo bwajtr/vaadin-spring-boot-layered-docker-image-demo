@@ -5,8 +5,9 @@
 
 FROM eclipse-temurin:17.0.6_10-jdk-alpine as builder
 WORKDIR application
-ARG JAR_FILE=target/vaadin-spring-boot-optimized-docker-layers-demo-1.0-SNAPSHOT.jar
+ARG JAR_FILE=target/vaadin-spring-boot-layered-docker-image-demo-1.0-SNAPSHOT.jar
 COPY ${JAR_FILE} application.jar
+# This will extract the spring boot dependency layers from the executable jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
 FROM eclipse-temurin:17.0.6_10-jdk-alpine
@@ -15,6 +16,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 EXPOSE 8080
 WORKDIR application
+# Let's copy the content from the builder phase to the resulting image
 COPY --from=builder application/dependencies/ ./
 COPY --from=builder application/spring-boot-loader/ ./
 COPY --from=builder application/snapshot-dependencies/ ./

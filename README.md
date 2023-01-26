@@ -14,13 +14,14 @@ For example, in the scenario of this very simple Vaadin app, this reduced push s
 > ⚠️ NOTE: The blog post above mentions to use LAYERED_JAR layout in maven plugin. However, that does not exist anymore. In the recent versions of Spring Boot you can omit the configuration of the plugin completely, because the layers are now added to the executable jar automatically, by default. For more info on layers see here: https://docs.spring.io/spring-boot/docs/current/maven-plugin/reference/htmlsingle/#packaging.layers
 
        
-This is the Dockerfile used  this project:
+This is the multistage Dockerfile used in this project, which showcases the layered approach:
                                              
 ```dockerfile
 FROM eclipse-temurin:17.0.6_10-jdk-alpine as builder
 WORKDIR application
-ARG JAR_FILE=target/vaadin-spring-boot-optimized-docker-layers-demo-1.0-SNAPSHOT.jar
+ARG JAR_FILE=target/vaadin-spring-boot-layered-docker-image-demo-1.0-SNAPSHOT.jar
 COPY ${JAR_FILE} application.jar
+# This will extract the spring boot dependency layers from the executable jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
 FROM eclipse-temurin:17.0.6_10-jdk-alpine
@@ -29,6 +30,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 EXPOSE 8080
 WORKDIR application
+# Let's copy the content from the builder phase to the resulting image
 COPY --from=builder application/dependencies/ ./
 COPY --from=builder application/spring-boot-loader/ ./
 COPY --from=builder application/snapshot-dependencies/ ./
@@ -36,7 +38,8 @@ COPY --from=builder application/application/ ./
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
 ```
 
-To build the Docker production image run
+
+To build, run and push  the Docker production image run the following commands - but first modify those commands and use your Docker Hub user name in them:
 
 ```
 .\build-docker-image.bat
@@ -48,7 +51,7 @@ Once the Docker image is correctly built, you can test it locally using
 .\run-docker-image.bat
 ```
 
-You can also push it to the GitHub repository by running the following command. Notice that only about 6Mb is pushed to the repository - that's thanks to the optimized layering of the image.
+You can also push it to the GitHub repository by running the following command (just modify it and use your Docker Hub user name there). Notice that only about 6Mb is pushed to the repository - that's thanks to the optimized layering of the image.
 
 ```
 .\push-docker-iamge.bat

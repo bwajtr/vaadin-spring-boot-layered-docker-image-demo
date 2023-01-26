@@ -36,14 +36,14 @@ You can also push it to the GitHub repository by running the following command (
 This is the multistage Dockerfile used in this project, which showcases the layered approach:
 
 ```dockerfile
-FROM eclipse-temurin:17.0.6_10-jdk-alpine as builder
+FROM eclipse-temurin:17.0.6_10-jre-alpine as builder
 WORKDIR application
 ARG JAR_FILE=target/vaadin-spring-boot-layered-docker-image-demo-1.0-SNAPSHOT.jar
 COPY ${JAR_FILE} application.jar
 # This will extract the spring boot dependency layers from the executable jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
-FROM eclipse-temurin:17.0.6_10-jdk-alpine
+FROM eclipse-temurin:17.0.6_10-jre-alpine
 # Running applications with user privileges helps to mitigate some risks
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
